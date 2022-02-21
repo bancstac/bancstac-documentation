@@ -1,0 +1,204 @@
+{
+	"info": {
+		"_postman_id": "0d0167bd-4c85-49d6-a405-fa6455982f54",
+		"name": "BANCSTAC Quickweb",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Quickweb",
+			"item": [
+				{
+					"name": "Payment INIT",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"",
+									"let body_data = pm.request.body.raw;",
+									"let currentTime = moment().format();",
+									"let clientId = pm.environment.get('clientId');",
+									"let secret = pm.environment.get('HMACSecret');",
+									"",
+									"body_data = body_data.replace('{{clientId}}', clientId);",
+									"body_data = body_data.replace('{{currentTime}}', currentTime);",
+									"",
+									"let hash = CryptoJS.HmacSHA256(body_data, secret).toString(CryptoJS.enc.Hex);",
+									"",
+									"pm.environment.set(\"HMAC\", hash);",
+									"pm.environment.set(\"currentTime\", currentTime);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"pm.collectionVariables.set(\"requestId\", jsonData.responseData.reqid);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"accept": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "HMAC",
+								"value": "{{HMAC}}",
+								"type": "text"
+							},
+							{
+								"key": "AUTHTOKEN",
+								"value": "{{AUTHTOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "*",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"version\": \"1.5\",\n    \"msgId\": \"AD32B8FC-0D72-41D3-8F6B-51FB2107835E\",\n    \"operation\": \"PAYMENT_INIT\",\n    \"requestDate\": \"{{currentTime}}\",\n    \"validateOnly\": false,\n    \"requestData\": {\n        \"clientId\": \"{{clientId}}\",\n        \"clientIdHash\": \"\",\n        \"transactionType\": \"PURCHASE\",\n        \"transactionAmount\": {\n            \"totalAmount\": 0,\n            \"paymentAmount\": 100,\n            \"serviceFeeAmount\": 0,\n            \"currency\": \"LKR\"\n        },\n        \"redirect\": {\n            \"returnUrl\": \"https://localhost/localres/response.php\",\n            \"cancelUrl\": \"\",\n            \"returnMethod\": \"GET\"\n        },\n        \"clientRef\": \"AR-12345\",\n        \"comment\": \"\",\n        \"tokenize\": false,\n        \"cssLocation1\": \"\",\n        \"cssLocation2\": \"\",\n        \"useReliability\": true\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/rest/service/proxy",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"rest",
+								"service",
+								"proxy"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Payment COMPLETE",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"",
+									"let body_data = pm.request.body.raw;",
+									"let currentTime = moment().format();",
+									"let clientId = pm.environment.get('clientId');",
+									"let secret = pm.environment.get('HMACSecret');",
+									"let requestId = pm.collectionVariables.get('requestId');",
+									"",
+									"body_data = body_data.replace('{{clientId}}', clientId);",
+									"body_data = body_data.replace('{{currentTime}}', currentTime);",
+									"body_data = body_data.replace('{{requestId}}', requestId);",
+									"",
+									"let hash = CryptoJS.HmacSHA256(body_data, secret).toString(CryptoJS.enc.Hex);",
+									"",
+									"pm.environment.set(\"HMAC\", hash);",
+									"pm.environment.set(\"currentTime\", currentTime);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"accept": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "HMAC",
+								"value": "{{HMAC}}",
+								"type": "text"
+							},
+							{
+								"key": "AUTHTOKEN",
+								"value": "{{AUTHTOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "*",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{  \n    \"version\": \"1.5\",\n    \"operation\":\"PAYMENT_COMPLETE\",\n    \"msgId\": \"AD32B8FC-0D72-41D3-8F6B-51FB2107835E\",\n    \"requestDate\":\"{{currentTime}}\" ,\n    \"validateOnly\": false,\n   \"requestData\":{\n      \"clientId\":\"{{clientId}}\",\n      \"reqid\": \"{{requestId}}\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/rest/service/proxy",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"rest",
+								"service",
+								"proxy"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "requestId",
+			"value": "{{requestId}}",
+			"type": "string"
+		}
+	]
+}
